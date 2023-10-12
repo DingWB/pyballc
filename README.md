@@ -674,3 +674,39 @@ file sizes
 -rw-rw-r-- 1 wding wding 1778349 Sep 12 17:00 test.bed
 -rw-rw-r-- 1 wding wding  609890 Sep 12 17:01 test.tsv.gz
 ```
+
+
+# yame
+```shell
+# pack
+header + data
+
+```
+## header
+```shell
+/** The header design, 17 bytes
+    uint64_t: signature, used for validation: 266563789635
+    uint8_t: format (0=vec; 1=rle)
+    uint64_t: length (n_cs or n_bytes for rle)
+**/
+import bgzip
+import struct
+f=open("test.cr",'rb')
+fh=bgzip.BGZipReader(f)
+r=fh.read(8)
+struct.unpack("Q",r)
+
+```
+
+## format
+```shell
+// ----- format 2 (state data) ----
+// key section + data section
+// The key section and data section are separated by an extra '\0'.
+// The key section is made of multiple c-strings concatenated by '\0'.
+// The data section is either an RLE (compressed) or a integer vector (inflated).
+// When compressed, the RLE is made of a value part and a length part.
+// The value part size is defined by a uint8_t that leads the data section.
+// The length part is always 2 bytes in size.
+
+```
