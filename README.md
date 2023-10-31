@@ -441,7 +441,9 @@ df = pd.read_csv("time_memory_usage.txt", sep='\t', index_col=0)
 print("1000 allc files:")
 print("Median number of lines for *allc.tsv: %s in %s allc files" % (int(df.line_num.median()),df.shape[0]))
 print("Median file size for *allc.tsv.gz: %s MB" % ((df.allc_size / 1024 /1024).median()))
-print("Median reduce size for *allc.tsv.gz: %s" % (((df.allc_size - df.ballc_size) / df.allc_size).median() * 100))
+print("Median file size for *.ballc: %s MB" % ((df.ballc_size / 1024 /1024).median()))
+print("Median file size for *.mz: %s MB" % ((df.mz_size / 1024 /1024).median()))
+print("Median reduce size from *allc.tsv.gz to .ballc: %s" % (((df.allc_size - df.ballc_size) / df.allc_size).median() * 100))
 print("Median time usage to convert allc.tsv.gz to ballc: %s seconds" % (df.time.median()))
 print("Median peak memory usage to convert allc.tsv.gz to ballc: %s MB" % (df.memory.median() / 1024))
 
@@ -453,6 +455,7 @@ df=df.sample(500)
 1000 allc files:
 Median number of lines for *allc.tsv: 33503256 in 1000 allc files
 Median file size for *allc.tsv.gz: 120.70244932174683 MB
+Median file size for *.ballc: 58.474853515625 MB
 Median reduce size for *allc.tsv.gz: 51.671223148772924
 Median time usage to convert allc.tsv.gz to ballc: 51.905 seconds
 Median peak memory usage to convert allc.tsv.gz to ballc: 24.21875 MB
@@ -709,4 +712,10 @@ struct.unpack("Q",r)
 // The value part size is defined by a uint8_t that leads the data section.
 // The length part is always 2 bytes in size.
 
+```
+
+# ballc
+## test join
+```shell
+/usr/bin/time -f "%e\t%M\t%P" join -a 1 -j 1 <(zcat ~/Ref/mm10/annotations/mm10_with_chrL_cmeta.txt.gz |awk 'BEGIN{FS=OFS="\t"};{print($1"-"$2,$3,$4)}') <(zcat merged_allc/10_merged_allc.tsv.gz | sort -k 1,1 -k 2,2n | awk 'BEGIN{FS=OFS="\t"};{print($1"-"$2,$5,$6)}') > 1
 ```
