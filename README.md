@@ -348,49 +348,58 @@ mkdir -p test_ballc
 gsutil ls gs://mouse_pfc/allc/devel_1 > test_allc_path.txt
 ```
 
-#### Randomly select 100 allc files
-```python
-import random
-with open("test_allc_path.txt",'r') as f:
-    lines=f.readlines()
-allc_files=[line.strip() for line in lines if '.tbi' not in line]
-selected_allc_files=random.sample(allc_files,100)
-with open("100allc.txt",'w') as f:
-    for file in selected_allc_files:
-        f.write(file+'\n')
+### Machine info
 ```
-#### Download 100 allc files
-```shell
-mkdir allc_files
-cat 100allc.txt | while read path; do
-    echo ${path}
-    gsutil -m cp -n ${path}* allc_files
-  done;
-```
-
-#### Test allc to ballc speed
-Machine information:
-```text
-Machine type: n2-standard-4
+# skygen run --submit -n ballcools -t "n2-standard-4" -d 500
+n2-standard-4
 vCPU: 4
 Memory: 16GB
 ```
-#### Conversion
-Comprssed allc.tsv.gz
-vim run_a2b.sh
+
+#### Randomly select 100 allc files
+```python
+# gsutil cp gs://mouse_pfc/metadata/allc.path.tsv ./
+import pandas as pd
+import os,sys
+df=pd.read_csv("allc.path.tsv",header=None,sep='\t',names=['cell_id','allc_path'])
+df.allc_path=df.allc_path.apply(lambda x:os.path.basename(x))
+df=df.allc_path.sample(1000)
+df.to_csv("1000_allc_path.txt",sep='\t',index=False,header=False)
+for i in [500,100,50,10]:
+    df.sample(i).to_csv(f"{i}_allc_path.txt",sep='\t',index=False,header=False)
+```
+
+#### Download 100 allc files
 ```shell
-mkdir -p ballc
+mkdir -p allc
+cat allc_path/1000_allc_path.txt | while read path; do
+    #echo ${path}
+    gsutil -m cp -n gs://mouse_pfc/allc/${path}* allc
+done;
+```
+
+#### Conversion
+```shell
+mkdir -p ~/Ref
+gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.fa ~/Ref/
+gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.main.chrom.sizes.txt ~/Ref
+gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.chrom.sizes ~/Ref
+cd ~/Ref/
+ballcools meta mm10_ucsc_with_chrL.fa mm10_with_chrL_cmeta.txt
+
 #find ../allc -name "*.allc.tsv.gz" > allc_path.txt 
 
-cat 1000_allc_path.txt | while read allc; do
-  sname=$(basename ${allc})
-  prefix=${sname/.allc.tsv.gz/}
+mkdir -p ballc
+#vim run_a2b.sh
+cat allc_path/1000_allc_path.txt | while read file; do
+  prefix=${file/.allc.tsv.gz/}
   echo "SampleID" :${prefix}
-  /usr/bin/time -f "%e\t%M\t%P" ballcools a2b -a mm10_with_chrL_cmeta.txt.gz ${allc} ballc/${prefix}.ballc ~/Ref/mm10/mm10_ucsc_with_chrL.chrom.sizes
-  zcat ${allc} | wc -l
-  ls -l ${allc}
+  time ballcools a2b -a ~/Ref/mm10_with_chrL_cmeta.txt.gz allc/${file} ballc/${prefix}.ballc ~/Ref/mm10_ucsc_with_chrL.chrom.sizes
+  zcat allc/${file} | wc -l
+  ls -l allc/${file}
   echo "----"
 done;
+# /usr/bin/time -f "%e\t%M\t%P"
 ```
 ```shell
 nohup bash run_a2b.sh > a2b.log &
@@ -416,10 +425,10 @@ for record in records:
 		time, memory, _ = lines[-1].split('\t')
 		R.append([sname, time, memory])
 	else:
-		time, memory, _ = lines[-3].split('\t')
+		time=lines[-5].split('\t')[1]
 		line_num = lines[-2].split(' ')[0].strip()
 		file_size = lines[-1].split(' ')[4]
-		R.append([sname, time, memory, line_num, file_size])
+		R.append([sname, time, line_num, file_size])
 
 if len(R[0]) == 3:
 	df = pd.DataFrame(R, columns=['SampleID', 'Time', 'Memory'])
@@ -427,40 +436,38 @@ if len(R[0]) == 3:
 	df.rename(columns={'Time': 'gz_time', 'Memory': 'gz_memory'}, inplace=True)
 	df.to_csv("time_memory_usage_gz_version.txt", sep='\t', index=False)
 else:
-	df = pd.DataFrame(R, columns=['SampleID', 'time', 'memory', 'line_num', 'allc_size'])
+	df = pd.DataFrame(R, columns=['SampleID', 'time', 'line_num', 'allc_size'])
     df['ballc_size']=df.SampleID.apply(lambda x:os.path.getsize(f"ballc/{x}.ballc"))
-	df.to_csv("time_memory_usage.txt", sep='\t', index=False)
+    df.time=df.time.apply(lambda x:[int(x.split('m')[0]),float(x.split('m')[1].rstrip('s'))])
+    df.time=df.time.apply(lambda x:int(x[0])*60+x[1])
+	df.to_csv("time_usage.txt", sep='\t', index=False)
 ```
 
 ```python
 import os
 import pandas as pd
 
-df = pd.read_csv("time_memory_usage.txt", sep='\t', index_col=0)
+df = pd.read_csv("time_usage.txt", sep='\t', index_col=0)
 
 print("1000 allc files:")
 print("Median number of lines for *allc.tsv: %s in %s allc files" % (int(df.line_num.median()),df.shape[0]))
 print("Median file size for *allc.tsv.gz: %s MB" % ((df.allc_size / 1024 /1024).median()))
 print("Median file size for *.ballc: %s MB" % ((df.ballc_size / 1024 /1024).median()))
-print("Median file size for *.mz: %s MB" % ((df.mz_size / 1024 /1024).median()))
+#print("Median file size for *.mz: %s MB" % ((df.mz_size / 1024 /1024).median()))
 print("Median reduce size from *allc.tsv.gz to .ballc: %s" % (((df.allc_size - df.ballc_size) / df.allc_size).median() * 100))
 print("Median time usage to convert allc.tsv.gz to ballc: %s seconds" % (df.time.median()))
-print("Median peak memory usage to convert allc.tsv.gz to ballc: %s MB" % (df.memory.median() / 1024))
+#print("Median peak memory usage to convert allc.tsv.gz to ballc: %s MB" % (df.memory.median() / 1024))
 
 df=df.sample(500)
-
 ```
 
 ```text
 1000 allc files:
-Median number of lines for *allc.tsv: 33503256 in 1000 allc files
-Median file size for *allc.tsv.gz: 120.70244932174683 MB
-Median file size for *.ballc: 58.474853515625 MB
-Median reduce size for *allc.tsv.gz: 51.671223148772924
-Median time usage to convert allc.tsv.gz to ballc: 51.905 seconds
-Median peak memory usage to convert allc.tsv.gz to ballc: 24.21875 MB
-
-
+Median number of lines for *allc.tsv: 33321762 in 1000 allc files
+Median file size for *allc.tsv.gz: 120.19241285324097 MB
+Median file size for *.ballc: 53.84084939956665 MB
+Median reduce size from *allc.tsv.gz to .ballc: 55.16409627878327
+Median time usage to convert allc.tsv.gz to ballc: 56.697500000000005 seconds
 ```
 
 ### 4. Merge (1 core, 20G memory)
@@ -469,29 +476,22 @@ ballcools merge
 for file in `ls ballc`; do ballcools index ballc/${file}; done;
 
 find ballc -name *.ballc > ballc_path.txt
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f ballc_path.txt merged.ballc
-
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 500_ballc_path.txt 500_merged.ballc
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 100_ballc_path.txt 100_merged.ballc
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 50_ballc_path.txt 50_merged.ballc
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 10_ballc_path.txt 10_merged.ballc
-
-
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 750_ballc_path.txt 750_merged.ballc
-/usr/bin/time -f "%e\t%M\t%P" ballcools merge -f 250_ballc_path.txt 250_merged.ballc
+# df=pd.read_csv("ballc_path.txt",sep='\t',header=None,names=['path'])
+# for i in [500,100,50,10]:
+#   df.sample(i).to_csv(f"{i}_ballc_path.txt",sep='\t',index=False,header=False)
+time ballcools merge -f 500_ballc_path.txt 500_merged.ballc
+time ballcools merge -f 100_ballc_path.txt 100_merged.ballc
+time ballcools merge -f 50_ballc_path.txt 50_merged.ballc
+time ballcools merge -f 10_ballc_path.txt 10_merged.ballc
 ````
 
 ```text
-Merging finished (1000 files)
-13952.71        16285288        59%
-3.88 h; 15.5GB memory
-
-
-Merging finished (750 files)
-11036.53        13327184        59%
-
 Merging finished (500 files)
-7878.89 8250068 63%
+#7878.89 8250068 63% #old
+#New 20240321:
+real    107m59.673s
+user    107m7.846s
+sys     0m41.077s
 
 Merging finished (250 files)
 4605.19 4265344 75%
