@@ -487,9 +487,10 @@ time ballcools merge -f 10_ballc_path.txt 10_merged.ballc
 
 ```text
 Merging finished (500 files)
-#7878.89 8250068 63% #old
+#7878.89 8250068 63% #old,2.18 hours
+
 #New 20240321:
-real    107m59.673s
+real    107m59.673s = 1.8 hours
 user    107m7.846s
 sys     0m41.077s
 
@@ -497,36 +498,33 @@ Merging finished (250 files)
 4605.19 4265344 75%
 
 Merging finished (100 files)
-2282.19 1854276 98%
+2282.19 1854276 98% #old =0.63 hours
+
+# New, 20240322:
+real    53m42.588s #0.9 hours
+user    53m21.018s
+sys     0m17.805s
 
 Merging finished (50 files)
-1710.55 1022428 99%
+1710.55 1022428 99% #old
+# new:
+real    36m40.025s
+user    36m23.977s
+sys     0m14.110s
 
 Merging finished (10 files)
-400.98  249280  99%
+400.98  249280  99% #old
+# New:
+real    10m20.453s
+user    10m18.025s
+sys     0m1.896s
 ```
 
 allcools merge
-```python
-import pandas as pd
-import os,sys
-df1=pd.read_csv("allc_path.txt",sep='\t',header=None,names=['path'])
-df1['SampleID']=df1.path.apply(lambda x:os.path.basename(x).rstrip('.allc.tsv.gz'))
-D=df1.set_index('SampleID').path.to_dict()
-outdir="allc_path"
-
-for file in os.listdir("ballc_path"):
-	df = pd.read_csv(os.path.join("ballc_path", file), sep='\t', header=None, names=['ballc_path'])
-	df['SampleID'] = df.ballc_path.apply(lambda x: os.path.basename(x).rstrip('.ballc'))
-	df['allc_path']=df.SampleID.map(D)
-	df.allc_path.to_csv(os.path.join(outdir,file.replace('ballc','allc')),sep='\t',index=False,header=False)
-```
 ```shell
 # allcools merge 
-for no in "1000" "500" "100" "50" "10"; do
-  echo ${no}
-  /usr/bin/time -f "%e\t%M\t%P" allcools merge --cpu 20 --allc_paths allc_path/${no}_allc_path.txt --output_path ${no}_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10/mm10_ucsc.nochrM.sizes > ${no}.log 2>&1
-done;
+time allcools merge --cpu 4 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
+time allcools merge --cpu 4 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes
 ```
 
 ```text
@@ -534,13 +532,21 @@ merge finished (1000 files)
 24187.61        4629032 767%
 
 merge finished (500)
-12125.63        4344556 820%
+12125.63        4344556 820% #old
+# New: 20240323; time allcools merge --cpu 4 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes
+real    1282m5.788s
+user    4469m58.661s
+sys     42m19.663s
 
 merge finished (100)
 2404.86 3844580 851%
 
 merge finished (50)
 1880.39 2742552 824%
+20240324;New:
+real    199m58.349s
+user    691m59.560s
+sys     5m46.217s
 
 merge finished (10)
 521.13  1053168 792%
