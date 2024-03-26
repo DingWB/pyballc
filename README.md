@@ -535,14 +535,6 @@ time allcools merge --cpu 48 --allc_paths 50_allc_path.txt --output_path 50_merg
 time allcools merge --cpu 48 --allc_paths 100_allc_path.txt --output_path 100_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 100_allc_merge.log 2>&1
 time allcools merge --cpu 48 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
 time allcools merge --cpu 48 --allc_paths 1000_allc_path.txt --output_path 1000_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 1000_allc_merge.log 2>&1
-
-
-# 16 CPU (n2-standard-48)
-time allcools merge --cpu 16 --allc_paths 10_allc_path.txt --output_path 10_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 10_allc_merge.log 2>1
-time allcools merge --cpu 16 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 50_allc_merge.log 2>1
-time allcools merge --cpu 16 --allc_paths 100_allc_path.txt --output_path 100_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 100_allc_merge.log 2>&1
-time allcools merge --cpu 16 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
-time allcools merge --cpu 16 --allc_paths 1000_allc_path.txt --output_path 1000_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 1000_allc_merge.log 2>&1
 ```
 
 ```text
@@ -581,6 +573,42 @@ user    5591m28.091s
 sys     107m58.289s
 ```
 
+# 16 CPU (n2-standard-48)
+```
+time allcools merge --cpu 16 --allc_paths 10_allc_path.txt --output_path 10_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 10_allc_merge.log 2>1
+time allcools merge --cpu 16 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 50_allc_merge.log 2>1
+time allcools merge --cpu 16 --allc_paths 100_allc_path.txt --output_path 100_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 100_allc_merge.log 2>&1
+time allcools merge --cpu 16 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
+time allcools merge --cpu 16 --allc_paths 1000_allc_path.txt --output_path 1000_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 1000_allc_merge.log 2>&1
+```
+
+```
+merge finished (10 files): 16 CPUs
+real    7m5.884s
+user    74m55.632s
+sys     1m29.024s
+
+merge finished (50 files): 16 CPUs
+real    20m52.315s
+user    234m43.405s
+sys     4m14.538s
+
+merge finished (100 files): 16 CPUs
+real    29m5.804s
+user    335m15.470s
+sys     6m54.090s
+
+merge finished (500 files): 16 CPUs
+real    134m1.703s
+user    1566m29.794s
+sys     34m57.783s
+
+merge finished (1000 files): 16 CPUs
+real    254m11.546s
+user    2998m2.954s
+sys     69m8.119s
+```
+
 | Number of Files | Tools     | No.CPU | Merge Time (Minutes)| Merge Time (Hours)|
 | --------------- | --------- | ------ | ------------------- | ------------------|
 | 1000            | ballcools | 1      | 123                 | 2.05              |
@@ -593,11 +621,11 @@ sys     107m58.289s
 | 100             | allcools  | 48     | 18                  | 0.3               |
 | 50              | allcools  | 48     | 14                  | 0.23              |
 | 10              | allcools  | 48     | 5                   | 0.08              |
-| 1000            | allcools  | 16     | ?                 | ?              |
-| 500             | allcools  | 16     | ?                  | 1.47              |
-| 100             | allcools  | 16     | ?                  | 0.3               |
-| 50              | allcools  | 16     | ?                  | 0.23              |
-| 10              | allcools  | 16     | ?                   | 0.08              |
+| 1000            | allcools  | 16     | 254                 | 4.23              |
+| 500             | allcools  | 16     | 134                  | 2.23             |
+| 100             | allcools  | 16     | 29                  | 0.48              |
+| 50              | allcools  | 16     | 21                  | 0.35              |
+| 10              | allcools  | 16     | 7                   | 0.12              |
 
 ### 5. Usage for non-single cell datasets
 #### Create meta index file
