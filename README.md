@@ -384,8 +384,9 @@ mkdir -p ~/Ref
 gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.fa ~/Ref/
 gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.main.chrom.sizes.txt ~/Ref
 gsutil cp gs://wubin_ref/mm10/mm10_ucsc_with_chrL.chrom.sizes ~/Ref
+gsutil cp gs://wubin_ref/mm10/mm10_with_chrL_cmeta.txt.gz* ~/Ref
 cd ~/Ref/
-ballcools meta mm10_ucsc_with_chrL.fa mm10_with_chrL_cmeta.txt
+#ballcools meta mm10_ucsc_with_chrL.fa mm10_with_chrL_cmeta.txt
 
 #find ../allc -name "*.allc.tsv.gz" > allc_path.txt 
 
@@ -479,6 +480,7 @@ find ballc -name *.ballc > ballc_path.txt
 # df=pd.read_csv("ballc_path.txt",sep='\t',header=None,names=['path'])
 # for i in [500,100,50,10]:
 #   df.sample(i).to_csv(f"{i}_ballc_path.txt",sep='\t',index=False,header=False)
+time ballcools merge -f 1000_ballc_path.txt 1000_merged.ballc
 time ballcools merge -f 500_ballc_path.txt 500_merged.ballc
 time ballcools merge -f 100_ballc_path.txt 100_merged.ballc
 time ballcools merge -f 50_ballc_path.txt 50_merged.ballc
@@ -486,6 +488,11 @@ time ballcools merge -f 10_ballc_path.txt 10_merged.ballc
 ````
 
 ```text
+Merging finished (1000 files); 20240325
+real    123m28.416s
+user    122m54.637s
+sys     0m33.302s
+
 Merging finished (500 files)
 #7878.89 8250068 63% #old,2.18 hours
 
@@ -522,50 +529,75 @@ sys     0m1.896s
 
 allcools merge
 ```shell
-# allcools merge 
-time allcools merge --cpu 4 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
-time allcools merge --cpu 4 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes
+# allcools merge (48 CPUs, n2-standard-48)
+time allcools merge --cpu 48 --allc_paths 10_allc_path.txt --output_path 10_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 10_allc_merge.log 2>1
+time allcools merge --cpu 48 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 50_allc_merge.log 2>1
+time allcools merge --cpu 48 --allc_paths 100_allc_path.txt --output_path 100_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 100_allc_merge.log 2>&1
+time allcools merge --cpu 48 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
+time allcools merge --cpu 48 --allc_paths 1000_allc_path.txt --output_path 1000_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 1000_allc_merge.log 2>&1
+
+
+# 16 CPU (n2-standard-48)
+time allcools merge --cpu 16 --allc_paths 10_allc_path.txt --output_path 10_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 10_allc_merge.log 2>1
+time allcools merge --cpu 16 --allc_paths 50_allc_path.txt --output_path 50_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 50_allc_merge.log 2>1
+time allcools merge --cpu 16 --allc_paths 100_allc_path.txt --output_path 100_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 100_allc_merge.log 2>&1
+time allcools merge --cpu 16 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 500_allc_merge.log 2>&1
+time allcools merge --cpu 16 --allc_paths 1000_allc_path.txt --output_path 1000_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes > 1000_allc_merge.log 2>&1
 ```
 
 ```text
-merge finished (1000 files)
-24187.61        4629032 767%
+20240325; merge (10 files)
+real    4m50.589s
+user    134m28.860s
+sys     1m45.946s
 
-merge finished (500)
+merge finished (50)
+20240325:
+real    13m59.626s
+user    435m44.011s
+sys     6m22.159s
+
+merge finished (100)
+20240325:
+real    18m32.321s
+user    609m59.203s
+sys     10m30.515s
+
+merge finished (500): 4CPUs
 12125.63        4344556 820% #old
 # New: 20240323; time allcools merge --cpu 4 --allc_paths 500_allc_path.txt --output_path 500_merged_allc.tsv.gz --chrom_size_path ~/Ref/mm10_ucsc_with_chrL.chrom.sizes
 real    1282m5.788s
 user    4469m58.661s
 sys     42m19.663s
 
-merge finished (100)
-2404.86 3844580 851%
+merge finished (500): 48 CPUs
+real    88m32.199s
+user    2943m50.193s
+sys     51m7.100s
 
-merge finished (50)
-1880.39 2742552 824%
-20240324;New:
-real    199m58.349s
-user    691m59.560s
-sys     5m46.217s
-
-merge finished (10)
-521.13  1053168 792%
+merge finished (1000): 48 CPUs
+real    166m33.902s
+user    5591m28.091s
+sys     107m58.289s
 ```
 
-| Number of Files | Tools     | No.CPU | Merge Time (Second) | Merge Time (Hour) | Memory Peak (KB) | Memory Peak (GB) |
-| --------------- | --------- | ------ | ------------------- | ----------------- | ---------------- | ---------------- |
-| 1000            | ballcools | 1      | 13952.71            | 3.875752778       | 16285288         | 15.5308609       |
-| 750             | ballcools | 1      | 11036.53            | 3.065702778       | 13327184         | 12.70979309      |
-| 500             | ballcools | 1      | 7878.89             | 2.188580556       | 8250068          | 7.86787796       |
-| 250             | ballcools | 1      | 4605.19             | 1.279219444       | 4265344          | 4.067749023      |
-| 100             | ballcools | 1      | 2282.19             | 0.633941667       | 1854276          | 1.768375397      |
-| 50              | ballcools | 1      | 1710.55             | 0.475152778       | 1022428          | 0.975063324      |
-| 10              | ballcools | 1      | 400.98              | 0.111383333       | 249280           | 0.237731934      |
-| 1000            | allcools  | 20     | 24187.61            | 6.718780556       | 4629032          | 4.414588928      |
-| 500             | allcools  | 20     | 12125.63            | 3.368230556       | 4344556          | 4.143291473      |
-| 100             | allcools  | 20     | 2404.86             | 0.668016667       | 3844580          | 3.666477203      |
-| 50              | allcools  | 20     | 1880.39             | 0.522330556       | 2742552          | 2.615501404      |
-| 10              | allcools  | 20     | 521.13              | 0.144758333       | 1053168          | 1.004379272      |
+| Number of Files | Tools     | No.CPU | Merge Time (Minutes)| Merge Time (Hours)|
+| --------------- | --------- | ------ | ------------------- | ------------------|
+| 1000            | ballcools | 1      | 123                 | 2.05              |
+| 500             | ballcools | 1      | 108                 | 1.80              |
+| 100             | ballcools | 1      | 54                  | 0.90              |
+| 50              | ballcools | 1      | 37                  | 0.62              |
+| 10              | ballcools | 1      | 10                  | 0.17              |
+| 1000            | allcools  | 48     | 166                 | 2.77              |
+| 500             | allcools  | 48     | 88                  | 1.47              |
+| 100             | allcools  | 48     | 18                  | 0.3               |
+| 50              | allcools  | 48     | 14                  | 0.23              |
+| 10              | allcools  | 48     | 5                   | 0.08              |
+| 1000            | allcools  | 16     | ?                 | ?              |
+| 500             | allcools  | 16     | ?                  | 1.47              |
+| 100             | allcools  | 16     | ?                  | 0.3               |
+| 50              | allcools  | 16     | ?                  | 0.23              |
+| 10              | allcools  | 16     | ?                   | 0.08              |
 
 ### 5. Usage for non-single cell datasets
 #### Create meta index file
